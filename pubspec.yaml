@@ -1,6 +1,6 @@
 name: lib5_crypto_implementation_dart
 description: A crypto implementation for lib5 in Dart.
-version: 1.0.0
+version: 0.1.0
 repository: https://github.com/s5-dev/lib5_crypto_implementation_dart
 
 environment:
