@@ -1,12 +1,14 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:lib5/lib5.dart';
-import 'package:thirds/blake3.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:lib5/lib5.dart';
+import 'package:lib5/util.dart';
+
+import 'blake3.dart';
 
 class DartCryptoImplementation extends CryptoImplementation {
-  final xchacha20 = Xchacha20.poly1305Aead();
+  final _xchacha20 = Xchacha20.poly1305Aead();
 
   @override
   Future<Uint8List> decryptXChaCha20Poly1305(
@@ -14,7 +16,7 @@ class DartCryptoImplementation extends CryptoImplementation {
       required Uint8List nonce,
       required Uint8List ciphertext}) async {
     final macIndex = ciphertext.length - 16;
-    final res = await xchacha20.decrypt(
+    final res = await _xchacha20.decrypt(
       SecretBox(
         ciphertext.sublist(0, macIndex),
         nonce: nonce,
@@ -30,7 +32,7 @@ class DartCryptoImplementation extends CryptoImplementation {
       {required Uint8List key,
       required Uint8List nonce,
       required Uint8List plaintext}) async {
-    final res = await xchacha20.encrypt(
+    final res = await _xchacha20.encrypt(
       plaintext,
       secretKey: SecretKey(key),
       nonce: nonce,
@@ -54,12 +56,36 @@ class DartCryptoImplementation extends CryptoImplementation {
 
   @override
   Future<Uint8List> hashBlake3(Uint8List input) async {
-    return Uint8List.fromList(blake3(input));
+    return hashBlake3Sync(input);
   }
 
   @override
   Uint8List hashBlake3Sync(Uint8List input) {
-    return Uint8List.fromList(blake3(input));
+    final output = Uint8List(32);
+
+    final ctx = HashContext();
+    ctx.reset();
+    ctx.update(input);
+    ctx.finalize(output);
+
+    return output;
+  }
+
+  @override
+  Future<Uint8List> hashBlake3File({
+    required int size,
+    required OpenReadFunction openRead,
+  }) async {
+    final output = Uint8List(32);
+
+    final ctx = HashContext();
+    ctx.reset();
+    await for (final chunk in openRead()) {
+      ctx.update(Uint8List.fromList(chunk));
+    }
+    ctx.finalize(output);
+
+    return output;
   }
 
   @override

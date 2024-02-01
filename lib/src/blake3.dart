@@ -33,8 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'src/format.dart';
-
 // BLAKE3 Implementation
 // Based on public domain software at
 // https://github.com/BLAKE3-team/BLAKE3
@@ -318,16 +316,16 @@ Uint32List _parentCv(
   );
 }
 
-class _HashContext {
+class HashContext {
   _ChunkState chunk;
   Uint32List _key;
   List<Uint32List?> _cVStack = List<Uint32List?>.filled(54, null);
   int _cvStackLength = 0;
   int _flags;
 
-  _HashContext._(key, flags) : _key = Uint32List.fromList(key), chunk = _ChunkState(key, 0, flags), _flags = flags;
+  HashContext._(key, flags) : _key = Uint32List.fromList(key), chunk = _ChunkState(key, 0, flags), _flags = flags;
 
-  _HashContext(): this._(_IV, 0);
+  HashContext(): this._(_IV, 0);
 
   void reset() {
     this.chunk = _ChunkState(this._key, 0, this._flags);
@@ -421,24 +419,4 @@ class _HashContext {
 
     return output;
   }
-}
-
-final _ctx = _HashContext();
-
-List<int> blake3(List<int> input, [outputLength = 32]) {
-  if (!(input is Uint8List)) {
-    input = Uint8List.fromList(input);
-  }
-
-  final output = Uint8List(outputLength);
-
-  _ctx.reset();
-  _ctx.update(input);
-  _ctx.finalize(output);
-
-  return output;
-}
-
-String blake3Hex(List<int> input, [outputLength = 32]) {
-  return asHexString(blake3(input, outputLength));
 }
