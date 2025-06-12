@@ -7,8 +7,10 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  cryptography: ^2.5.0
-  lib5: ^0.2.0
+  cryptography_plus: ^2.7.0
+  cryptography_flutter_plus: ^2.3.2
+  lib5: 
+    git: https://github.com/s5-dev/lib5.git
 
 dev_dependencies:
   lints: ^2.0.0

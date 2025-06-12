@@ -319,7 +319,7 @@ Uint32List _parentCv(
 class HashContext {
   _ChunkState chunk;
   Uint32List _key;
-  List<Uint32List?> _cVStack = List<Uint32List?>.filled(54, null);
+  final List<Uint32List?> _cVStack = List<Uint32List?>.filled(54, null);
   int _cvStackLength = 0;
   int _flags;
 
@@ -328,25 +328,25 @@ class HashContext {
   HashContext(): this._(_IV, 0);
 
   void reset() {
-    this.chunk = _ChunkState(this._key, 0, this._flags);
-    this._cVStack.fillRange(0, 54, null);
-    this._cvStackLength = 0;
+    chunk = _ChunkState(_key, 0, _flags);
+    _cVStack.fillRange(0, 54, null);
+    _cvStackLength = 0;
   }
 
   void _pushCv(Uint32List cv) {
-    this._cVStack[this._cvStackLength++] = cv;
+    _cVStack[_cvStackLength++] = cv;
   }
 
   Uint32List _popCv() {
-    return this._cVStack[--this._cvStackLength]!;
+    return _cVStack[--_cvStackLength]!;
   }
 
   _addChunkCv(Uint32List newCv, int totalChunks) {
     while(totalChunks & 1 == 0) {
-      newCv = _parentCv(this._popCv(), newCv, this._key, this._flags);
+      newCv = _parentCv(_popCv(), newCv, _key, _flags);
       totalChunks >>= 1;
     }
-    this._pushCv(newCv);
+    _pushCv(newCv);
   }
 
   update(Uint8List input) {
@@ -355,14 +355,14 @@ class HashContext {
     while (taken < input.length) {
       if (_chunkLength(chunk) == _CHUNK_LENGTH) {
         final chunkCv = _getChainingValue(_chunkOutput(chunk));
-        final totalChunks = this.chunk.chunkCounter + 1;
-        this._addChunkCv(chunkCv, totalChunks);
-        this.chunk = _ChunkState(this._key, totalChunks, this._flags);
+        final totalChunks = chunk.chunkCounter + 1;
+        _addChunkCv(chunkCv, totalChunks);
+        chunk = _ChunkState(_key, totalChunks, _flags);
       }
 
       final take = min(_CHUNK_LENGTH - _chunkLength(chunk), input.length);
       _chunkUpdate(
-        this.chunk,
+        chunk,
         Uint8List.view(input.buffer, taken, min(take, input.length - taken))
       );
       taken += take;
@@ -372,15 +372,15 @@ class HashContext {
   finalize(Uint8List output) {
     final outputData = output.buffer.asByteData();
 
-    _Output o = _chunkOutput(this.chunk);
-    int parentNodesRemaining = this._cvStackLength;
+    _Output o = _chunkOutput(chunk);
+    int parentNodesRemaining = _cvStackLength;
     while (parentNodesRemaining > 0) {
       parentNodesRemaining--;
       o = _parentOutput(
-        this._cVStack[parentNodesRemaining]!,
+        _cVStack[parentNodesRemaining]!,
         _getChainingValue(o),
-        this._key,
-        this._flags
+        _key,
+        _flags
       );
     }
 

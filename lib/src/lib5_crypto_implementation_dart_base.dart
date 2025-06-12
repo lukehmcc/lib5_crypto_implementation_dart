@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:cryptography/cryptography.dart';
+import 'package:cryptography_plus/cryptography_plus.dart';
 import 'package:lib5/lib5.dart';
 import 'package:lib5/util.dart';
 
@@ -44,7 +44,7 @@ class DartCryptoImplementation extends CryptoImplementation {
   final _defaultSecureRandom = Random.secure();
 
   @override
-  Uint8List generateRandomBytes(int length) {
+  Uint8List generateSecureRandomBytes(int length) {
     final bytes = Uint8List(length);
 
     for (var i = 0; i < bytes.length; i++) {
@@ -91,20 +91,20 @@ class DartCryptoImplementation extends CryptoImplementation {
   @override
   Future<KeyPairEd25519> newKeyPairEd25519({required Uint8List seed}) async {
     final keyPair = await ed25519.newKeyPairFromSeed(seed);
-    final pk = (await keyPair.extractPublicKey()).bytes;
-    return KeyPairEd25519(Uint8List.fromList(seed + pk));
+    final publicKey = (await keyPair.extractPublicKey()).bytes;
+    return KeyPairEd25519(Uint8List.fromList(seed + publicKey));
   }
 
   @override
   Future<Uint8List> signEd25519({
-    required KeyPairEd25519 kp,
+    required KeyPairEd25519 keyPair,
     required Uint8List message,
   }) async {
     final signature = await ed25519.sign(
       message,
-      keyPair: SimpleKeyPairData(kp.extractBytes().sublist(0, 32),
+      keyPair: SimpleKeyPairData(keyPair.extractBytes().sublist(0, 32),
           publicKey: SimplePublicKey(
-            kp.extractBytes().sublist(32),
+            keyPair.extractBytes().sublist(32),
             type: KeyPairType.ed25519,
           ),
           type: KeyPairType.ed25519),
@@ -114,7 +114,7 @@ class DartCryptoImplementation extends CryptoImplementation {
 
   @override
   Future<bool> verifyEd25519({
-    required Uint8List pk,
+    required Uint8List publicKey,
     required Uint8List message,
     required Uint8List signature,
   }) async {
@@ -123,7 +123,7 @@ class DartCryptoImplementation extends CryptoImplementation {
       signature: Signature(
         signature,
         publicKey: SimplePublicKey(
-          pk,
+          publicKey,
           type: KeyPairType.ed25519,
         ),
       ),
