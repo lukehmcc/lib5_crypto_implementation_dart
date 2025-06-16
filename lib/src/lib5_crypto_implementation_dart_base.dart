@@ -44,7 +44,7 @@ class DartCryptoImplementation extends CryptoImplementation {
   final _defaultSecureRandom = Random.secure();
 
   @override
-  Uint8List generateSecureRandomBytes(int length) {
+  Uint8List generateRandomBytes(int length) {
     final bytes = Uint8List(length);
 
     for (var i = 0; i < bytes.length; i++) {
@@ -97,14 +97,14 @@ class DartCryptoImplementation extends CryptoImplementation {
 
   @override
   Future<Uint8List> signEd25519({
-    required KeyPairEd25519 keyPair,
+    required KeyPairEd25519 kp,
     required Uint8List message,
   }) async {
     final signature = await ed25519.sign(
       message,
-      keyPair: SimpleKeyPairData(keyPair.extractBytes().sublist(0, 32),
+      keyPair: SimpleKeyPairData(kp.extractBytes().sublist(0, 32),
           publicKey: SimplePublicKey(
-            keyPair.extractBytes().sublist(32),
+            kp.extractBytes().sublist(32),
             type: KeyPairType.ed25519,
           ),
           type: KeyPairType.ed25519),
@@ -114,7 +114,7 @@ class DartCryptoImplementation extends CryptoImplementation {
 
   @override
   Future<bool> verifyEd25519({
-    required Uint8List publicKey,
+    required Uint8List pk,
     required Uint8List message,
     required Uint8List signature,
   }) async {
@@ -123,7 +123,7 @@ class DartCryptoImplementation extends CryptoImplementation {
       signature: Signature(
         signature,
         publicKey: SimplePublicKey(
-          publicKey,
+          pk,
           type: KeyPairType.ed25519,
         ),
       ),
